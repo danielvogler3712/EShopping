@@ -1,4 +1,11 @@
-﻿<h3>Create</h3>
+﻿@using ApplicationCore.Entities
+@using BlazorAdmin.JavaScript;
+@using BlazorShared.Models;
+
+@inject ILogger<Create> Logger
+@inject IJSRuntime JSRuntime
+
+<h3>Create</h3>
 
 @code {
     [Parameter]
@@ -6,4 +13,43 @@
     [Parameter]
     public IEnumerable<CatalogType> Types { get; set; }
 
+    [Parameter]
+    public EventCallback<string> OnSaveClick { get; set; }
+
+    private string _modalDisplay = "none;";
+    private string _modalClass = "";
+    private bool _showCreateModal = false;
+
+    private CreateCatalogItemRequest _item = new CreateCatalogItemRequest();
+
+    private async Task CreateClick()
+    {
+    }
+
+    public async Task Open()
+    {
+        Logger.LogInformation("Now loading... /Catalog/Create");
+
+        await new Css(JSRuntime).HideBodyOverflow();
+
+        _item = new CreateCatalogItemRequest
+            {
+                CatalogTypeId = Types.First().Id,
+                CatalogBrandId = Brands.First().Id
+            };
+
+        _modalDisplay = "block;";
+        _modalClass = "Show";
+        _showCreateModal = true;
+
+        StateHasChanged();
+    }
+
+    private async Task Close()
+    {
+        await new Css(JSRuntime).ShowBodyOverflow();
+        _modalDisplay = "none";
+        _modalClass = "";
+        _showCreateModal = false;
+    }
 }

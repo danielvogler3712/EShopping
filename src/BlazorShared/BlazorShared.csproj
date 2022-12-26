@@ -7,11 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Entities\OrderAggregate\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Ardalis.GuardClauses" Version="4.0.1" />
+    <PackageReference Include="BlazorFileUploader" Version="1.0.0" />
   </ItemGroup>
 
 </Project>
