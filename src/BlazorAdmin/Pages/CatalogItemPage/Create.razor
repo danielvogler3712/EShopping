@@ -1,11 +1,104 @@
-﻿@using ApplicationCore.Entities
-@using BlazorAdmin.JavaScript;
+﻿@using BlazorAdmin.JavaScript;
+@using BlazorShared.Interfaces;
 @using BlazorShared.Models;
 
 @inject ILogger<Create> Logger
 @inject IJSRuntime JSRuntime
+@inject ICatalogItemService CatalogItemService
 
-<h3>Create</h3>
+<div class="modal @_modalClass" tabindex="-1" role="dialog" style="display:@_modalDisplay">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <EditForm Model="_item" OnValidSubmit="@CreateClick">
+                <DataAnnotationsValidator />
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Create</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" @onclick="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    @if (_item == null)
+                    {
+                        <Spinner></Spinner>
+                    }
+                    else
+                    {
+                        <div class="container">
+                            <div class="row">
+                                @if (HasPicture)
+                                {
+                                    <img class="col-md-6 esh-picture" src="@LoadPicture">
+                                }
+                                <div class="col-md-@(HasPicture?"6":"12")">
+                                    <div>
+                                        <label class="form-label col-md-6">Name</label>
+                                        <div class="col-md-12">
+                                            <InputText class="form-control" @bind-Value="_item.Name" />
+                                            <ValidationMessage For="(() => _item.Name)" />
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label class="col-md-6 form-label">Description</label>
+                                        <div class="col-md-12">
+                                            <InputText class="form-control" @bind-Value="_item.Description" />
+                                            <ValidationMessage For="(() => _item.Description)" />
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label class="col-md-6 form-label">Brand</label>
+                                        <div class="col-md-12">
+                                            <InputSelect class="form-control" @bind-Value="_item.CatalogBrandId">
+                                                @foreach(var brand in Brands)
+                                                {
+                                                    <option value="@brand.Id">@brand.Name</option>
+                                                }
+                                            </InputSelect>
+                                            <ValidationMessage For="(() => _item.CatalogBrandId)" />
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label class="col-md-6 form-label">Type</label>
+                                        <div class="col-md-12">
+                                            <InputSelect class="form-control" @bind-Value="_item.CatalogTypeId">
+                                                @foreach (var type in Types)
+                                                {
+                                                    <option value="@type.Id">@type.Name</option>
+                                                }
+                                            </InputSelect>
+                                            <ValidationMessage For="(() => _item.CatalogTypeId)" />
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label class="col-md-6 form-label">Price</label>
+                                        <div class="col-md-12">
+                                            <InputNumber class="form-control" @bind-Value="_item.Price" />
+                                            <ValidationMessage For="(() => _item.Price)" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal" @onclick="Close">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create</button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+@if (_showCreateModal)
+{
+    <div class="modal-backdrop fade show"></div>
+}
 
 @code {
     [Parameter]
@@ -21,9 +114,17 @@
     private bool _showCreateModal = false;
 
     private CreateCatalogItemRequest _item = new CreateCatalogItemRequest();
+    private bool HasPicture => !string.IsNullOrEmpty(_item.PictureBase64);
+    private string LoadPicture => string.IsNullOrEmpty(_item.PictureBase64) ? string.Empty : $"data:image/png;base64, {_item.PictureBase64}";
 
     private async Task CreateClick()
     {
+        var result = await CatalogItemService.Create(_item);
+        if (result != null)
+        {
+            await OnSaveClick.InvokeAsync(null);
+            await Close();
+        }
     }
 
     public async Task Open()
